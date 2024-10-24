@@ -15,22 +15,12 @@ RUN apt update && apt install -y software-properties-common \
 # Add your static assets to the web directory
 COPY web /var/www/html
 
-# Configure Nginx to process PHP files
-RUN echo "server { \
-    listen 80; \
-    root /var/www/html; \
-    index index.php index.html; \
-    location / { \
-        try_files \$uri \$uri/ =404; \
-    } \
-    location ~ \.php$ { \
-        include snippets/fastcgi-php.conf; \
-        fastcgi_pass unix:/run/php/php8.2-fpm.sock; \
-    } \
-    location ~ /\.ht { \
-        deny all; \
-    } \
-}" > /etc/nginx/sites-available/default
+# Copy Nginx configuration file
+COPY config/nginx.conf /etc/nginx/sites-available/default
+
+# Remove the existing symlink if it exists, and create a new symlink
+RUN rm -f /etc/nginx/sites-enabled/default \
+    && ln -s /etc/nginx/sites-available/default /etc/nginx/sites-enabled/
 
 # Expose port 80 for the web server
 EXPOSE 80
